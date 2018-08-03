@@ -1,0 +1,17 @@
+language: node_js
+node_js: node # Current
+install:
+  - npm install --loglevel http # Prevent timeouts for inactivity
+before_script:
+  - npm run lint
+deploy:
+  provider: npm
+  email: pro.alexandre.mercier@gmail.com
+  api_key: $NPM_AUTH_TOKEN
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: $TRAVIS_REPO_SLUG # Prevents publishing on PRs
+cache:
+  directories:
+    - $HOME/.npm
