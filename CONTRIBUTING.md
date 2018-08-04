@@ -13,9 +13,9 @@ TL;DR
 
 | Command         | Description |
 |-----------------|-------------|
-| `npm run build` | Generates . |
 | `npm run lint`  | Runs [ESLint](https://eslint.org/) linter. |
-
+| `npm test`      | Runs unit tests with [Jest](https://jestjs.io/). |
+| `npm run build` | Generates `index.json` |
 
 Coding standards
 ----------------
@@ -40,6 +40,12 @@ Prerequisites: [Node.js](https://nodejs.org/) (latest), **npm** (latet).
 
 ```bash
 npm install
+```
+
+#### Step 4. Run tests
+
+```bash
+npm test
 ```
 
 #### Step 3. Build `index.json`
