@@ -1,9 +1,9 @@
 language: node_js
 node_js: node # Current
-install:
-  - npm install --loglevel http # Prevent timeouts for inactivity
-before_script:
-  - npm run lint
+install: npm install --loglevel http # Prevent timeouts for inactivity
+before_script: npm run lint
+script: npm test -- --coverage
+after_success: codecov
 deploy:
   provider: npm
   email: pro.alexandre.mercier@gmail.com
