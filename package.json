@@ -22,7 +22,7 @@
     "test": "jest",
     "build": "node run > index.json",
     "prepublishOnly": "run-s build",
-    "pre-commit": "run-p lint"
+    "pre-commit": "run-p lint 'test -- --lastCommit'"
   },
   "main": "index.json",
   "files": [
