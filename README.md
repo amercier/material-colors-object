@@ -62,6 +62,14 @@ console.log(materialColors);
     shades: { /* ... */ }
   },
   // ...
+  black: {
+    name: 'Black',
+    value: '#000000'
+  },
+  white: {
+    name: 'White',
+    value: '#ffffff'
+  }
 }
 ```
 

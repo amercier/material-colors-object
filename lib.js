@@ -115,15 +115,15 @@ function getShadeValue(colorElement, selectors) {
 /**
  * Extract data from a color element.
  *
- * @param {Cheerio} colorElement - Color element to process.
+ * @param {Cheerio} shadeElement - Color element to process.
  * @param {string} selectors - Selectors settings.
  * @returns {Object} An object containing the color data.
  */
-function colorElementToObject(colorElement, selectors) {
-  const value = getShadeValue(colorElement, selectors);
+function shadeElementToObject(shadeElement, selectors) {
+  const value = getShadeValue(shadeElement, selectors);
   return {
     value,
-    isDark: colorElement.is(selectors.isDark),
+    isDark: shadeElement.is(selectors.isDark),
     lightValue: chroma(value).brighten().hex(),
     darkValue: chroma(value).darken().hex(),
   };
@@ -134,33 +134,30 @@ function colorElementToObject(colorElement, selectors) {
  *
  * @param {Cheerio} colorGroupElement - Color group element to process.
  * @param {string} selectors - Selectors settings.
- * @returns {Object} An object containing all color group data.
+ * @returns {Object[]} An object containing all color group data.
  */
-function colorGroupElementToObject(colorGroupElement, selectors) {
-  const colorElements = findAtLeastOneElement(colorGroupElement, selectors.colorDetails);
-  return {
-    name: getColorName(colorElements.first(), selectors),
-    shades: colorElements
-      .toArray()
-      .reduce((accumulator, element) => {
-        const colorElement = cheerio(element);
-        const id = getShadeName(colorElement, selectors);
-        accumulator[id] = colorElementToObject(colorElement, selectors);
-        return accumulator;
-      }, {}),
-  };
-}
+function colorGroupElementToObjects(colorGroupElement, selectors) {
+  const colorElements = findAtLeastOneElement(colorGroupElement, selectors.colorDetails)
+    .toArray()
+    .map(cheerio);
 
-/**
- * Whether a color group element is valid.
- * To be valid, it must contain more than 2 colors.
- *
- * @param {Cheerio} colorGroupElement - Color group element.
- * @param {Object} selectors - Set of selectors.
- * @returns {boolean} `true` if `colorGroupElement` is valid, `false` otherwise.
- */
-function isColorGroupValid(colorGroupElement, selectors) {
-  return colorGroupElement.find(selectors.colorDetails).length > 2; // > 2 to exclude Black/White
+  // Not enough shades => return many colors
+  if (colorElements.length < 10) {
+    return colorElements.map(colorElement => ({
+      name: getColorName(colorElement, selectors),
+      value: getShadeValue(colorElement, selectors),
+    }));
+  }
+
+  // Shades => return 1 colors with multiple shades
+  return [{
+    name: getColorName(colorElements[0], selectors),
+    shades: colorElements.reduce((accumulator, shadeElement) => {
+      const id = getShadeName(shadeElement, selectors);
+      accumulator[id] = shadeElementToObject(shadeElement, selectors);
+      return accumulator;
+    }, {}),
+  }];
 }
 
 /**
@@ -183,16 +180,18 @@ async function generate(url, selectors, log = noopStream) {
   const colorGroupElements = findAtLeastOneElement(dom('html'), selectors.colorGroup)
     .toArray()
     .map(cheerio)
-    .filter(element => isColorGroupValid(element, selectors));
+    .filter(element => element.find(selectors.colorDetails).length > 0);
 
   log.write(`Found ${cyan(colorGroupElements.length)} colors, processing...\n`);
 
   const colorGroups = colorGroupElements
     .reduce((accumulator, element) => {
-      const color = colorGroupElementToObject(element, selectors);
-      const id = color.name.toLowerCase().replace(/ /g, '-');
-      accumulator[id] = color;
-      log.write(`${green('  ✓')} Processed ${cyan(color.name)} color, found ${cyan(Object.values(color.shades).length)} shades\n`);
+      colorGroupElementToObjects(element, selectors).forEach((color) => {
+        const id = color.name.toLowerCase().replace(/ /g, '-');
+        accumulator[id] = color;
+        const details = color.shades ? `, found ${cyan(Object.values(color.shades).length)} shades` : '';
+        log.write(`${green('  ✓')} Processed ${cyan(color.name)} color${details}\n`);
+      });
       return accumulator;
     }, {});
 
@@ -214,7 +213,7 @@ module.exports = {
   getColorName,
   getShadeName,
   getShadeValue,
-  colorElementToObject,
-  colorGroupElementToObject,
+  shadeElementToObject,
+  colorGroupElementToObjects,
   generate,
 };

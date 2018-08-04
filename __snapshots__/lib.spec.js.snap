@@ -91,6 +91,10 @@ Object {
       },
     },
   },
+  "black": Object {
+    "name": "Black",
+    "value": "#000000",
+  },
   "blue": Object {
     "name": "Blue",
     "shades": Object {
@@ -1531,6 +1535,10 @@ Object {
         "value": "#00bfa5",
       },
     },
+  },
+  "white": Object {
+    "name": "White",
+    "value": "#ffffff",
   },
   "yellow": Object {
     "name": "Yellow",
